@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CraftWallet">
+  <meta name="theme-color" content="#2d1a0e">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="manifest" href="manifest.json">
+  <title>CraftWallet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --wood-dark: #3b2507;
+      --wood-mid: #6b4226;
+      --wood-light: #a0693a;
+      --stone-dark: #4a4a4a;
+      --stone-mid: #7a7a7a;
+      --stone-light: #aaaaaa;
+      --grass-dark: #2d6b1a;
+      --grass-mid: #4a9e2e;
+      --grass-light: #6dd43e;
+      --gold: #ffd700;
+      --gold-dark: #c5a000;
+      --red: #e74c3c;
+      --red-dark: #a93226;
+      --emerald: #2ecc71;
+      --bg-overlay: rgba(20, 12, 5, 0.75);
+      --panel-bg: rgba(30, 18, 8, 0.88);
+      --panel-border: rgba(160, 105, 58, 0.5);
+      --text-primary: #f5e6d3;
+      --text-secondary: #b8a089;
+      --text-muted: #7a6a5a;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #1a0e05;
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100dvh;
+      width: 100vw;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .pixel-font {
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    /* ===== ANIMATED BACKGROUND ===== */
+    #bg-container {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    #bg-image {
+      position: absolute;
+      inset: -60px;
+      background: url('assets/bg.jpg') center/cover no-repeat;
+      animation: bg-drift 20s ease-in-out infinite alternate;
+      image-rendering: auto;
+    }
+
+    @keyframes bg-drift {
+      0% {
+        transform: scale(1.1) translate(0, 0);
+      }
+
+      25% {
+        transform: scale(1.15) translate(-15px, 10px);
+      }
+
+      50% {
+        transform: scale(1.1) translate(10px, -8px);
+      }
+
+      75% {
+        transform: scale(1.12) translate(-5px, -12px);
+      }
+
+      100% {
+        transform: scale(1.1) translate(8px, 5px);
+      }
+    }
+
+    #bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-overlay);
+      backdrop-filter: blur(1px);
+    }
+
+    /* ===== PARTICLES ===== */
+    #particles {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      bottom: -20px;
+      border-radius: 1px;
+      opacity: 0;
+      animation: particle-float linear forwards;
+      image-rendering: pixelated;
+    }
+
+    @keyframes particle-float {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.7;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: translateY(-110vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* ===== APP CONTAINER ===== */
+    #app {
+      position: relative;
+      z-index: 2;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ===== HEADER ===== */
+    #app-header {
+      padding: calc(12px + var(--safe-top)) 16px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(20, 12, 5, 0.95) 0%, transparent 100%);
+    }
+
+    #app-header h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 14px;
+      color: var(--gold);
+      text-shadow: 2px 2px 0 var(--wood-dark), 0 0 10px rgba(255, 215, 0, 0.3);
+      letter-spacing: 1px;
+    }
+
+    #month-indicator {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--text-secondary);
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+
+    /* ===== MAIN VIEWS ===== */
+    #views {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 8px 12px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    #views::-webkit-scrollbar {
+      display: none;
+    }
+
+    .view {
+      display: none;
+      animation: view-in 0.3s ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes view-in {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===== MINECRAFT PANELS ===== */
+    .mc-panel {
+      background: var(--panel-bg);
+      border: 3px solid;
+      border-color: rgba(160, 105, 58, 0.6) rgba(60, 35, 12, 0.8) rgba(60, 35, 12, 0.8) rgba(160, 105, 58, 0.6);
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 12px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .mc-panel h3 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--gold);
+      margin-bottom: 12px;
+      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    /* ===== MINECRAFT BUTTONS ===== */
+    .mc-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: linear-gradient(180deg, #7a7a7a 0%, #5a5a5a 100%);
+      border: 3px solid;
+      border-color: #aaa #444 #444 #aaa;
+      color: #fff;
+      text-shadow: 2px 2px 0 #3f3f3f;
+      padding: 10px 18px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.05s;
+      width: 100%;
+    }
+
+    .mc-btn:active {
+      border-color: #444 #aaa #aaa #444;
+      background: linear-gradient(180deg, #5a5a5a 0%, #4a4a4a 100%);
+      transform: translateY(1px);
+    }
+
+    .mc-btn.green {
+      background: linear-gradient(180deg, var(--grass-mid) 0%, var(--grass-dark) 100%);
+      border-color: var(--grass-light) #1a4a0e #1a4a0e var(--grass-light);
+    }
+
+    .mc-btn.green:active {
+      border-color: #1a4a0e var(--grass-light) var(--grass-light) #1a4a0e;
+      background: linear-gradient(180deg, var(--grass-dark) 0%, #1a4a0e 100%);
+    }
+
+    .mc-btn.red {
+      background: linear-gradient(180deg, var(--red) 0%, var(--red-dark) 100%);
+      border-color: #f07070 #7a1a1a #7a1a1a #f07070;
+    }
+
+    .mc-btn.red:active {
+      border-color: #7a1a1a #f07070 #f07070 #7a1a1a;
+      background: linear-gradient(180deg, var(--red-dark) 0%, #7a1a1a 100%);
+    }
+
+    .mc-btn.gold {
+      background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dark) 100%);
+      border-color: #ffe44d #8a7000 #8a7000 #ffe44d;
+      color: var(--wood-dark);
+      text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    /* ===== BALANCE CARD ===== */
+    .balance-card {
+      background: linear-gradient(135deg, rgba(45, 27, 10, 0.95), rgba(30, 18, 8, 0.95));
+      border-color: var(--gold-dark) rgba(60, 35, 12, 0.8) rgba(60, 35, 12, 0.8) var(--gold-dark);
+    }
+
+    .balance-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .balance-row .label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .balance-row .value {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+    }
+
+    .balance-row.income .value {
+      color: var(--emerald);
+    }
+
+    .balance-row.expense .value {
+      color: var(--red);
+    }
+
+    .balance-row.balance {
+      border-top: 2px solid var(--panel-border);
+      margin-top: 4px;
+      padding-top: 12px;
+    }
+
+    .balance-row.balance .label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--gold);
+    }
+
+    .balance-row.balance .value {
+      font-size: 14px;
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    }
+
+    .balance-row.balance .value.negative {
+      color: var(--red);
+      text-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
+    }
+
+    /* ===== XP BAR ===== */
+    .xp-container {
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .xp-bar-wrap {
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid #333;
+      border-radius: 3px;
+      height: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .xp-fill {
+      height: 100%;
+      background: linear-gradient(180deg, #80e830 0%, #4aa52e 50%, #2d8a1a 100%);
+      border-radius: 2px;
+      transition: width 0.6s ease;
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.2), 0 0 10px rgba(78, 204, 46, 0.3);
+      position: relative;
+    }
+
+    .xp-fill::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(255, 255, 255, 0.05) 8px, rgba(255, 255, 255, 0.05) 16px);
+    }
+
+    .xp-text {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--grass-light);
+      margin-top: 4px;
+      display: inline-block;
+      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    /* ===== CATEGORY BREAKDOWN ===== */
+    .cat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(160, 105, 58, 0.2);
+    }
+
+    .cat-row:last-child {
+      border-bottom: none;
+    }
+
+    .cat-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+
+    .cat-emoji {
+      font-size: 10px;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: bold;
+    }
+
+    .cat-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .cat-amount {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--red);
+    }
+
+    .cat-bar-wrap {
+      flex: 1;
+      margin: 0 10px;
+      background: rgba(0, 0, 0, 0.3);
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .cat-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    /* ===== TRANSACTION LIST ===== */
+    .tx-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(160, 105, 58, 0.15);
+      gap: 10px;
+    }
+
+    .tx-item:last-child {
+      border-bottom: none;
+    }
+
+    .tx-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid;
+      border-color: #555 #222 #222 #555;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .tx-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tx-note {
+      font-size: 13px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tx-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .tx-amount {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tx-amount.income {
+      color: var(--emerald);
+    }
+
+    .tx-amount.expense {
+      color: var(--red);
+    }
+
+    .tx-delete {
+      width: 28px;
+      height: 28px;
+      background: rgba(231, 76, 60, 0.2);
+      border: 2px solid rgba(231, 76, 60, 0.4);
+      border-radius: 4px;
+      color: var(--red);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tx-delete:active {
+      background: rgba(231, 76, 60, 0.5);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 10px;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+
+    .empty-state .emoji {
+      font-size: 32px;
+      margin-bottom: 10px;
+      font-family: 'Press Start 2P', monospace;
+      color: var(--text-muted);
+    }
+
+    /* ===== FORM STYLES ===== */
+    .form-section {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .mc-input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 3px solid;
+      border-color: #333 #666 #666 #333;
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+      -webkit-appearance: none;
+      color-scheme: dark;
+    }
+
+    input[type="date"].mc-input {
+      color-scheme: dark;
+      color: var(--gold);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    input[type="date"].mc-input::-webkit-calendar-picker-indicator {
+      background: var(--gold);
+      padding: 6px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 1;
+      filter: none;
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+      transition: background 0.15s, transform 0.1s;
+    }
+    input[type="date"].mc-input::-webkit-calendar-picker-indicator:hover {
+      background: #ffe44d;
+      transform: scale(1.05);
+    }
+
+    .mc-input:focus {
+      border-color: var(--gold-dark) var(--gold) var(--gold) var(--gold-dark);
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.15);
+    }
+
+    .mc-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Type Toggle */
+    .type-toggle {
+      display: flex;
+      gap: 0;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 3px solid var(--stone-dark);
+    }
+
+    .type-btn {
+      flex: 1;
+      padding: 12px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      border: none;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .type-btn.active-income {
+      background: rgba(46, 204, 113, 0.25);
+      color: var(--emerald);
+      box-shadow: inset 0 0 15px rgba(46, 204, 113, 0.1);
+    }
+
+    .type-btn.active-expense {
+      background: rgba(231, 76, 60, 0.25);
+      color: var(--red);
+      box-shadow: inset 0 0 15px rgba(231, 76, 60, 0.1);
+    }
+
+    /* Category Grid */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .cat-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 4px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid #444;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    .cat-option .cat-opt-emoji {
+      font-size: 13px;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-weight: bold;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      border: 2px solid rgba(255,255,255,0.08);
+    }
+
+    .cat-option.selected {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.1);
+      color: var(--gold);
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+    }
+
+    /* ===== HISTORY TABS ===== */
+    .history-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 12px;
+      border: 2px solid var(--stone-dark);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .history-tab {
+      flex: 1;
+      padding: 10px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      border: none;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .history-tab.active {
+      background: rgba(255, 215, 0, 0.15);
+      color: var(--gold);
+    }
+
+    /* Date group header */
+    .date-header {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--text-muted);
+      padding: 8px 0 4px;
+      border-bottom: 1px solid rgba(160, 105, 58, 0.2);
+      margin-top: 8px;
+    }
+
+    .date-header:first-child {
+      margin-top: 0;
+    }
+
+    /* ===== BOTTOM NAV ===== */
+    #bottom-nav {
+      display: flex;
+      background: rgba(20, 12, 5, 0.96);
+      border-top: 2px solid var(--panel-border);
+      padding-bottom: var(--safe-bottom);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 4px 8px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 20px;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .nav-btn span {
+      font-size: 8px;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+
+    .nav-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+    }
+
+    .nav-btn.active {
+      color: var(--gold);
+    }
+
+    .nav-btn.active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: var(--gold);
+      border-radius: 0 0 2px 2px;
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fade-in 0.2s ease;
+    }
+
+    .modal-overlay.hidden {
+      display: none;
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-box {
+      background: var(--panel-bg);
+      border: 3px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 320px;
+      width: 100%;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: modal-pop 0.2s ease;
+    }
+
+    @keyframes modal-pop {
+      from {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--gold);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .modal-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal-actions .mc-btn {
+      flex: 1;
+      font-size: 8px;
+      padding: 10px;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      top: calc(20px + var(--safe-top));
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      z-index: 200;
+      background: rgba(30, 18, 8, 0.95);
+      border: 3px solid var(--gold);
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--gold);
+      text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== SETTINGS VIEW ===== */
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(160, 105, 58, 0.2);
+    }
+
+    .settings-item:last-child {
+      border-bottom: none;
+    }
+
+    .settings-label {
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .settings-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .settings-action .mc-btn {
+      font-size: 8px;
+      padding: 8px 14px;
+      width: auto;
+    }
+
+    /* ===== MINING ANIMATION ===== */
+    .mine-anim {
+      position: fixed;
+      z-index: 150;
+      pointer-events: none;
+    }
+
+    .mine-crack {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--gold);
+      animation: crack 0.3s ease forwards;
+      border-radius: 4px;
+    }
+
+    @keyframes crack {
+      0% {
+        transform: scale(0.5);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
+    }
+
+    .mine-piece {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: var(--gold);
+      animation: piece-fly 0.5s ease forwards;
+    }
+
+    @keyframes piece-fly {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    /* ===== LAST MONTH SUMMARY ===== */
+    .lm-summary {
+      text-align: center;
+      padding: 10px;
+    }
+
+    .lm-month {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--gold);
+      margin-bottom: 15px;
+    }
+
+    .lm-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .lm-stat {
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      border: 2px solid #333;
+    }
+
+    .lm-stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .lm-stat-value {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+    }
+
+    /* Utility */
+    .mb-8 {
+      margin-bottom: 8px;
+    }
+
+    .mb-12 {
+      margin-bottom: 12px;
+    }
+
+    .mt-8 {
+      margin-top: 8px;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .gap-8 {
+      gap: 8px;
+    }
+
+    .flex-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Scrollable content padding for bottom nav */
+    .view {
+      padding-bottom: 20px;
+    }
+
+    /* Amount input prefix */
+    .amount-wrap {
+      position: relative;
+    }
+
+    .amount-wrap .prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .amount-wrap .mc-input {
+      padding-left: 40px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Background -->
+  <div id="bg-container">
+    <div id="bg-image"></div>
+    <div id="bg-overlay"></div>
+  </div>
+
+  <!-- Particles -->
+  <div id="particles"></div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- App -->
+  <div id="app">
+    <!-- Header -->
+    <header id="app-header">
+      <h1>CraftWallet</h1>
+      <span id="month-indicator"></span>
+    </header>
+
+    <!-- Views -->
+    <div id="views">
+
+      <!-- ===== DASHBOARD ===== -->
+      <section id="view-dashboard" class="view active">
+        <!-- Balance Card -->
+        <div class="balance-card mc-panel">
+          <div class="balance-row income">
+            <span class="label">Pemasukan</span>
+            <span class="value" id="dash-income">Rp 0</span>
+          </div>
+          <div class="balance-row expense">
+            <span class="label">Pengeluaran</span>
+            <span class="value" id="dash-expense">Rp 0</span>
+          </div>
+          <div class="balance-row balance">
+            <span class="label">SALDO</span>
+            <span class="value" id="dash-balance">Rp 0</span>
+          </div>
+        </div>
+
+        <!-- XP Bar -->
+        <div class="xp-container">
+          <div class="xp-bar-wrap">
+            <div class="xp-fill" id="xp-fill" style="width: 0%"></div>
+          </div>
+          <span class="xp-text" id="xp-text">Lv.0 — Pemula</span>
+        </div>
+
+        <!-- Monthly Expense by Category -->
+        <div class="mc-panel">
+          <h3>// Pengeluaran Per Kategori</h3>
+          <div id="category-breakdown">
+            <div class="empty-state">
+              <div class="emoji">~ ~</div>
+              Belum ada pengeluaran bulan ini
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="mc-panel">
+          <h3>// Transaksi Terakhir</h3>
+          <div id="recent-list">
+            <div class="empty-state">
+              <div class="emoji">. . .</div>
+              Belum ada transaksi
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ADD TRANSACTION ===== -->
+      <section id="view-add" class="view">
+        <div class="mc-panel">
+          <h3>+ Tambah Transaksi</h3>
+
+          <!-- Type Toggle -->
+          <div class="form-section">
+            <div class="type-toggle">
+              <button class="type-btn active-income" id="type-income" onclick="setType('income')">PEMASUKAN</button>
+              <button class="type-btn" id="type-expense" onclick="setType('expense')">PENGELUARAN</button>
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div class="form-section">
+            <label class="form-label">JUMLAH</label>
+            <div class="amount-wrap">
+              <span class="prefix">Rp</span>
+              <input type="number" class="mc-input" id="input-amount" placeholder="0" inputmode="numeric" min="0">
+            </div>
+          </div>
+
+          <!-- Category (expense only) -->
+          <div class="form-section" id="category-section">
+            <label class="form-label">KATEGORI</label>
+            <div class="cat-grid" id="cat-grid"></div>
+          </div>
+
+          <!-- Note (expense only) -->
+          <div class="form-section" id="note-section">
+            <label class="form-label">CATATAN (OPSIONAL)</label>
+            <input type="text" class="mc-input" id="input-note" placeholder="Contoh: Makan siang" maxlength="100">
+          </div>
+
+          <!-- Date -->
+          <div class="form-section">
+            <label class="form-label">TANGGAL</label>
+            <input type="date" class="mc-input" id="input-date" onclick="try{this.showPicker()}catch(e){}">
+          </div>
+
+          <!-- Submit -->
+          <button class="mc-btn green mt-8" id="btn-save" onclick="saveTransaction()">
+            SIMPAN TRANSAKSI
+          </button>
+        </div>
+      </section>
+
+      <!-- ===== HISTORY ===== -->
+      <section id="view-history" class="view">
+        <div class="history-tabs">
+          <button class="history-tab active" id="tab-current" onclick="switchHistoryTab('current')">BULAN INI</button>
+          <button class="history-tab" id="tab-last" onclick="switchHistoryTab('last')">BULAN LALU</button>
+        </div>
+
+        <!-- Current Month History -->
+        <div id="history-current">
+          <div class="mc-panel" id="history-current-summary"></div>
+          <div class="mc-panel">
+            <h3>// Semua Transaksi</h3>
+            <div id="history-current-list">
+              <div class="empty-state">
+                <div class="emoji">. . .</div>
+                Belum ada transaksi bulan ini
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Last Month History -->
+        <div id="history-last" style="display:none">
+          <div id="history-last-content">
+            <div class="mc-panel">
+              <div class="empty-state">
+                <div class="emoji">---</div>
+                Belum ada riwayat bulan lalu<br>
+                <span style="font-size:10px; margin-top:8px; display:block;">Reset bulan ini dulu untuk menyimpan
+                  riwayat</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS ===== -->
+      <section id="view-settings" class="view">
+        <div class="mc-panel">
+          <h3>Reset Bulanan</h3>
+          <p style="font-size:12px; color:var(--text-secondary); margin-bottom:14px; line-height:1.6;">
+            Reset akan menyimpan data bulan ini sebagai <b>"Bulan Lalu"</b> dan memulai bulan baru. Data bulan lalu
+            sebelumnya akan terhapus.
+          </p>
+          <button class="mc-btn red" onclick="confirmReset()">
+            RESET BULAN INI
+          </button>
+        </div>
+
+        <div class="mc-panel">
+          <h3>Tentang</h3>
+          <div style="font-size:12px; color:var(--text-secondary); line-height:1.8;">
+            <p><b>CraftWallet</b> v1.0</p>
+            <p>Pencatat keuangan pribadi</p>
+            <p>bertema Minecraft</p>
+            <br>
+            <p style="font-size:10px; color:var(--text-muted);">Data tersimpan di perangkat ini.<br>Gunakan Reset tiap
+              awal bulan.</p>
+          </div>
+        </div>
+
+        <div class="mc-panel">
+          <h3>Hapus Semua Data</h3>
+          <p style="font-size:12px; color:var(--text-secondary); margin-bottom:14px; line-height:1.6;">
+            Menghapus semua data termasuk riwayat bulan lalu. Tidak bisa dikembalikan!
+          </p>
+          <button class="mc-btn" style="border-color: #666 #333 #333 #666;" onclick="confirmClearAll()">
+            HAPUS SEMUA
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav id="bottom-nav">
+      <button class="nav-btn active" data-view="dashboard" onclick="switchView('dashboard')">
+        <i class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9v9H14v-6h-4v6H4v-9z"/></svg></i><span>Beranda</span>
+      </button>
+      <button class="nav-btn" data-view="add" onclick="switchView('add')">
+        <i class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></svg></i><span>Tambah</span>
+      </button>
+      <button class="nav-btn" data-view="history" onclick="switchView('history')">
+        <i class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h10M4 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></i><span>Riwayat</span>
+      </button>
+      <button class="nav-btn" data-view="settings" onclick="switchView('settings')">
+        <i class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v4m0 12v4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83M2 12h4m12 0h4M4.22 19.78l2.83-2.83m9.9-9.9l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></i><span>Lainnya</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-text" id="modal-text"></div>
+      <div class="modal-actions" id="modal-actions"></div>
+    </div>
+  </div>
+
+  <script>
+    // ===========================
+    // DATA & STATE
+    // ===========================
+    const APP_KEY = 'craftWallet_data';
+    const CATEGORIES = [
+      { id: 'makanan', name: 'Makanan', emoji: 'M', color: '#e67e22' },
+      { id: 'transportasi', name: 'Transport', emoji: 'T', color: '#3498db' },
+      { id: 'lainnya', name: 'Lainnya', emoji: 'Dll', color: '#95a5a6' }
+    ];
+
+    let data = loadData();
+    let currentType = 'income';
+    let selectedCategory = 'makanan';
+    let currentHistoryTab = 'current';
+
+    function getDefaultData() {
+      return {
+        currentMonth: getCurrentMonth(),
+        income: [],
+        expenses: [],
+        lastMonth: null
+      };
+    }
+
+    function getCurrentMonth() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function getMonthName(monthStr) {
+      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const [year, month] = monthStr.split('-');
+      return `${months[parseInt(month) - 1]} ${year}`;
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(APP_KEY);
+        if (!raw) return getDefaultData();
+        return JSON.parse(raw);
+      } catch (e) {
+        return getDefaultData();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(APP_KEY, JSON.stringify(data));
+    }
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    }
+
+    // ===========================
+    // CALCULATIONS
+    // ===========================
+    function getTotalIncome() {
+      return data.income.reduce((s, i) => s + i.amount, 0);
+    }
+
+    function getTotalExpenses() {
+      return data.expenses.reduce((s, i) => s + i.amount, 0);
+    }
+
+    function getBalance() {
+      return getTotalIncome() - getTotalExpenses();
+    }
+
+    function formatRupiah(amount) {
+      return 'Rp ' + Math.abs(amount).toLocaleString('id-ID');
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      return `${days[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+    }
+
+    function formatDateShort(dateStr) {
+      const d = new Date(dateStr);
+      return `${d.getDate()}/${d.getMonth() + 1}`;
+    }
+
+    function getCategoryById(id) {
+      return CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
+    }
+
+    // Level system: 1 level per every Rp 500,000 saved
+    function getLevel() {
+      const balance = getBalance();
+      if (balance <= 0) return 0;
+      return Math.floor(balance / 500000);
+    }
+
+    function getLevelTitle(level) {
+      if (level === 0) return 'Pemula';
+      if (level <= 2) return 'Penambang';
+      if (level <= 5) return 'Crafter';
+      if (level <= 10) return 'Explorer';
+      if (level <= 20) return 'Diamond Tier';
+      return 'Netherite Pro';
+    }
+
+    function getXpProgress() {
+      const balance = getBalance();
+      if (balance <= 0) return 0;
+      return ((balance % 500000) / 500000) * 100;
+    }
+
+    // ===========================
+    // VIEW SWITCHING
+    // ===========================
+    function switchView(viewName) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('view-' + viewName).classList.add('active');
+      document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+      document.getElementById('views').scrollTop = 0;
+
+      if (viewName === 'add') {
+        document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+      }
+      if (viewName === 'history') renderHistory();
+      if (viewName === 'dashboard') renderDashboard();
+    }
+
+    // ===========================
+    // RENDER DASHBOARD
+    // ===========================
+    function renderDashboard() {
+      const totalIncome = getTotalIncome();
+      const totalExpense = getTotalExpenses();
+      const balance = getBalance();
+      const level = getLevel();
+
+      document.getElementById('dash-income').textContent = formatRupiah(totalIncome);
+      document.getElementById('dash-expense').textContent = formatRupiah(totalExpense);
+
+      const balEl = document.getElementById('dash-balance');
+      balEl.textContent = (balance < 0 ? '-' : '') + formatRupiah(balance);
+      balEl.className = 'value' + (balance < 0 ? ' negative' : '');
+
+      // XP Bar
+      const xpProgress = getXpProgress();
+      document.getElementById('xp-fill').style.width = xpProgress + '%';
+      document.getElementById('xp-text').textContent = `Lv.${level} — ${getLevelTitle(level)}`;
+
+      // Month indicator
+      document.getElementById('month-indicator').textContent = getMonthName(data.currentMonth);
+
+      // Category breakdown
+      renderCategoryBreakdown();
+
+      // Recent transactions
+      renderRecentTransactions();
+    }
+
+    function renderCategoryBreakdown() {
+      const container = document.getElementById('category-breakdown');
+      if (data.expenses.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="emoji">~ ~</div>Belum ada pengeluaran bulan ini</div>';
+        return;
+      }
+
+      const catTotals = {};
+      data.expenses.forEach(e => {
+        catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
+      });
+
+      const maxAmount = Math.max(...Object.values(catTotals));
+      let html = '';
+
+      Object.entries(catTotals)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([catId, amount]) => {
+          const cat = getCategoryById(catId);
+          const pct = (amount / maxAmount) * 100;
+          html += `
+            <div class="cat-row">
+              <div class="cat-info" style="min-width:80px">
+                <span class="cat-emoji">${cat.emoji}</span>
+                <span class="cat-name">${cat.name}</span>
+              </div>
+              <div class="cat-bar-wrap">
+                <div class="cat-bar" style="width:${pct}%; background:${cat.color}"></div>
+              </div>
+              <span class="cat-amount">${formatRupiah(amount)}</span>
+            </div>
+          `;
+        });
+
+      container.innerHTML = html;
+    }
+
+    function renderRecentTransactions() {
+      const container = document.getElementById('recent-list');
+      const all = getAllTransactions();
+
+      if (all.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="emoji">. . .</div>Belum ada transaksi</div>';
+        return;
+      }
+
+      const recent = all.slice(0, 5);
+      container.innerHTML = recent.map(tx => renderTxItem(tx, false)).join('');
+    }
+
+    function getAllTransactions() {
+      const inc = data.income.map(i => ({ ...i, type: 'income' }));
+      const exp = data.expenses.map(e => ({ ...e, type: 'expense' }));
+      return [...inc, ...exp].sort((a, b) => {
+        const dateComp = b.date.localeCompare(a.date);
+        if (dateComp !== 0) return dateComp;
+        return b.timestamp - a.timestamp;
+      });
+    }
+
+    function renderTxItem(tx, showDelete = true) {
+      const isIncome = tx.type === 'income';
+      const cat = isIncome ? { emoji: 'Rp', name: 'Pemasukan' } : getCategoryById(tx.category);
+      return `
+        <div class="tx-item">
+          <div class="tx-icon">${cat.emoji}</div>
+          <div class="tx-details">
+            <div class="tx-note">${tx.note || cat.name}</div>
+            <div class="tx-meta">${formatDateShort(tx.date)} · ${cat.name}</div>
+          </div>
+          <span class="tx-amount ${tx.type}">${isIncome ? '+' : '-'}${formatRupiah(tx.amount)}</span>
+          ${showDelete ? `<button class="tx-delete" onclick="deleteTransaction('${tx.id}','${tx.type}')">✕</button>` : ''}
+        </div>
+      `;
+    }
+
+    // ===========================
+    // ADD TRANSACTION
+    // ===========================
+    function setType(type) {
+      currentType = type;
+      const incBtn = document.getElementById('type-income');
+      const expBtn = document.getElementById('type-expense');
+      const catSection = document.getElementById('category-section');
+      const noteSection = document.getElementById('note-section');
+
+      incBtn.className = 'type-btn' + (type === 'income' ? ' active-income' : '');
+      expBtn.className = 'type-btn' + (type === 'expense' ? ' active-expense' : '');
+      catSection.style.display = type === 'expense' ? 'block' : 'none';
+      if (noteSection) {
+        noteSection.style.display = type === 'expense' ? 'block' : 'none';
+      }
+    }
+
+    function selectCategory(catId) {
+      selectedCategory = catId;
+      document.querySelectorAll('.cat-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.cat === catId);
+      });
+    }
+
+    function initCategoryGrid() {
+      const grid = document.getElementById('cat-grid');
+      grid.innerHTML = CATEGORIES.map(cat => `
+        <div class="cat-option ${cat.id === selectedCategory ? 'selected' : ''}" data-cat="${cat.id}" onclick="selectCategory('${cat.id}')">
+          <span class="cat-opt-emoji">${cat.emoji}</span>
+          <span>${cat.name}</span>
+        </div>
+      `).join('');
+    }
+
+    function saveTransaction() {
+      const amountInput = document.getElementById('input-amount');
+      const noteInput = document.getElementById('input-note');
+      const dateInput = document.getElementById('input-date');
+
+      const amount = parseInt(amountInput.value);
+      if (!amount || amount <= 0) {
+        showToast('Masukkan jumlah!');
+        return;
+      }
+
+      const tx = {
+        id: generateId(),
+        amount: amount,
+        note: currentType === 'income' ? '' : noteInput.value.trim(),
+        date: dateInput.value || new Date().toISOString().split('T')[0],
+        timestamp: Date.now()
+      };
+
+      if (currentType === 'income') {
+        data.income.push(tx);
+      } else {
+        tx.category = selectedCategory;
+        data.expenses.push(tx);
+      }
+
+      saveData();
+
+      // Mine animation
+      playMineAnimation();
+
+      // Show toast
+      const cat = currentType === 'expense' ? getCategoryById(selectedCategory) : null;
+      showToast(`${currentType === 'income' ? 'Pemasukan' : cat.name} +${formatRupiah(amount)}`);
+
+      // Reset form
+      amountInput.value = '';
+      noteInput.value = '';
+
+      // Switch to dashboard
+      setTimeout(() => switchView('dashboard'), 600);
+    }
+
+    // ===========================
+    // DELETE TRANSACTION
+    // ===========================
+    function deleteTransaction(id, type) {
+      showModal(
+        'Hapus Transaksi?',
+        'Transaksi ini akan dihapus permanen.',
+        [
+          { text: 'BATAL', class: '', action: hideModal },
+          {
+            text: 'HAPUS', class: 'red', action: () => {
+              if (type === 'income') {
+                data.income = data.income.filter(i => i.id !== id);
+              } else {
+                data.expenses = data.expenses.filter(e => e.id !== id);
+              }
+              saveData();
+              hideModal();
+              renderHistory();
+              renderDashboard();
+              showToast('Transaksi dihapus');
+            }
+          }
+        ]
+      );
+    }
+
+    // ===========================
+    // HISTORY
+    // ===========================
+    function switchHistoryTab(tab) {
+      currentHistoryTab = tab;
+      document.getElementById('tab-current').classList.toggle('active', tab === 'current');
+      document.getElementById('tab-last').classList.toggle('active', tab === 'last');
+      document.getElementById('history-current').style.display = tab === 'current' ? 'block' : 'none';
+      document.getElementById('history-last').style.display = tab === 'last' ? 'block' : 'none';
+
+      if (tab === 'current') renderHistoryCurrent();
+      if (tab === 'last') renderHistoryLast();
+    }
+
+    function renderHistory() {
+      if (currentHistoryTab === 'current') renderHistoryCurrent();
+      else renderHistoryLast();
+    }
+
+    function renderHistoryCurrent() {
+      const totalIncome = getTotalIncome();
+      const totalExpense = getTotalExpenses();
+
+      // Summary
+      document.getElementById('history-current-summary').innerHTML = `
+        <h3>// Ringkasan ${getMonthName(data.currentMonth)}</h3>
+        <div class="balance-row income">
+          <span class="label">Pemasukan</span>
+          <span class="value" style="color:var(--emerald);font-family:'Press Start 2P',monospace;font-size:10px">${formatRupiah(totalIncome)}</span>
+        </div>
+        <div class="balance-row expense">
+          <span class="label">Pengeluaran</span>
+          <span class="value" style="color:var(--red);font-family:'Press Start 2P',monospace;font-size:10px">${formatRupiah(totalExpense)}</span>
+        </div>
+        <div class="balance-row" style="border-top:2px solid var(--panel-border);margin-top:4px;padding-top:8px">
+          <span class="label" style="font-weight:bold">Total Transaksi</span>
+          <span style="font-family:'Press Start 2P',monospace;font-size:10px;color:var(--gold)">${data.income.length + data.expenses.length}</span>
+        </div>
+      `;
+
+      // List
+      const listEl = document.getElementById('history-current-list');
+      const all = getAllTransactions();
+
+      if (all.length === 0) {
+        listEl.innerHTML = '<div class="empty-state"><div class="emoji">. . .</div>Belum ada transaksi bulan ini</div>';
+        return;
+      }
+
+      // Group by date
+      const grouped = {};
+      all.forEach(tx => {
+        if (!grouped[tx.date]) grouped[tx.date] = [];
+        grouped[tx.date].push(tx);
+      });
+
+      let html = '';
+      Object.entries(grouped)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .forEach(([date, txs]) => {
+          html += `<div class="date-header">${formatDate(date)}</div>`;
+          txs.forEach(tx => { html += renderTxItem(tx, true); });
+        });
+
+      listEl.innerHTML = html;
+    }
+
+    function renderHistoryLast() {
+      const container = document.getElementById('history-last-content');
+
+      if (!data.lastMonth) {
+        container.innerHTML = `
+          <div class="mc-panel">
+            <div class="empty-state">
+              <div class="emoji">---</div>
+              Belum ada riwayat bulan lalu<br>
+              <span style="font-size:10px; margin-top:8px; display:block;">Reset bulan ini dulu untuk menyimpan riwayat</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const lm = data.lastMonth;
+      const lmTotalIncome = lm.income.reduce((s, i) => s + i.amount, 0);
+      const lmTotalExpense = lm.expenses.reduce((s, e) => s + e.amount, 0);
+      const lmBalance = lmTotalIncome - lmTotalExpense;
+
+      let html = `
+        <div class="mc-panel">
+          <div class="lm-summary">
+            <div class="lm-month">${getMonthName(lm.month)}</div>
+            <div class="lm-stats">
+              <div class="lm-stat">
+                <div class="lm-stat-label">Pemasukan</div>
+                <div class="lm-stat-value" style="color:var(--emerald)">${formatRupiah(lmTotalIncome)}</div>
+              </div>
+              <div class="lm-stat">
+                <div class="lm-stat-label">Pengeluaran</div>
+                <div class="lm-stat-value" style="color:var(--red)">${formatRupiah(lmTotalExpense)}</div>
+              </div>
+            </div>
+            <div class="lm-stat" style="padding:12px;background:rgba(0,0,0,0.3);border-radius:4px;border:2px solid #333;">
+              <div class="lm-stat-label">Saldo Akhir</div>
+              <div class="lm-stat-value" style="color:${lmBalance >= 0 ? 'var(--gold)' : 'var(--red)'}; font-size:12px;">
+                ${lmBalance < 0 ? '-' : ''}${formatRupiah(lmBalance)}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Category breakdown for last month
+      const catTotals = {};
+      lm.expenses.forEach(e => {
+        catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
+      });
+
+      if (Object.keys(catTotals).length > 0) {
+        const maxCat = Math.max(...Object.values(catTotals));
+        html += '<div class="mc-panel"><h3>// Pengeluaran Per Kategori</h3>';
+        Object.entries(catTotals)
+          .sort((a, b) => b[1] - a[1])
+          .forEach(([catId, amount]) => {
+            const cat = getCategoryById(catId);
+            const pct = (amount / maxCat) * 100;
+            html += `
+              <div class="cat-row">
+                <div class="cat-info" style="min-width:80px">
+                  <span class="cat-emoji">${cat.emoji}</span>
+                  <span class="cat-name">${cat.name}</span>
+                </div>
+                <div class="cat-bar-wrap">
+                  <div class="cat-bar" style="width:${pct}%; background:${cat.color}"></div>
+                </div>
+                <span class="cat-amount">${formatRupiah(amount)}</span>
+              </div>
+            `;
+          });
+        html += '</div>';
+      }
+
+      // Transaction list
+      const allLm = [
+        ...lm.income.map(i => ({ ...i, type: 'income' })),
+        ...lm.expenses.map(e => ({ ...e, type: 'expense' }))
+      ].sort((a, b) => {
+        const dateComp = b.date.localeCompare(a.date);
+        if (dateComp !== 0) return dateComp;
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      });
+
+      if (allLm.length > 0) {
+        html += '<div class="mc-panel"><h3>// Daftar Transaksi</h3>';
+        const grouped = {};
+        allLm.forEach(tx => {
+          if (!grouped[tx.date]) grouped[tx.date] = [];
+          grouped[tx.date].push(tx);
+        });
+        Object.entries(grouped)
+          .sort((a, b) => b[0].localeCompare(a[0]))
+          .forEach(([date, txs]) => {
+            html += `<div class="date-header">${formatDate(date)}</div>`;
+            txs.forEach(tx => { html += renderTxItem(tx, false); });
+          });
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ===========================
+    // RESET MONTH
+    // ===========================
+    function confirmReset() {
+      showModal(
+        'Reset Bulan?',
+        `Data bulan ini (${getMonthName(data.currentMonth)}) akan disimpan sebagai riwayat bulan lalu, dan bulan baru dimulai.`,
+        [
+          { text: 'BATAL', class: '', action: hideModal },
+          {
+            text: 'RESET', class: 'gold', action: () => {
+              data.lastMonth = {
+                month: data.currentMonth,
+                income: [...data.income],
+                expenses: [...data.expenses]
+              };
+              data.currentMonth = getCurrentMonth();
+              data.income = [];
+              data.expenses = [];
+              saveData();
+              hideModal();
+              renderDashboard();
+              showToast('Bulan baru dimulai!');
+              switchView('dashboard');
+            }
+          }
+        ]
+      );
+    }
+
+    function confirmClearAll() {
+      showModal(
+        'Hapus Semua Data?',
+        'Semua data akan dihapus permanen termasuk riwayat bulan lalu. Tidak bisa dikembalikan!',
+        [
+          { text: 'BATAL', class: '', action: hideModal },
+          {
+            text: 'HAPUS', class: 'red', action: () => {
+              data = getDefaultData();
+              saveData();
+              hideModal();
+              renderDashboard();
+              showToast('Semua data dihapus');
+              switchView('dashboard');
+            }
+          }
+        ]
+      );
+    }
+
+    // ===========================
+    // MODAL
+    // ===========================
+    function showModal(title, text, actions) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-text').textContent = text;
+      document.getElementById('modal-actions').innerHTML = actions.map((a, i) =>
+        `<button class="mc-btn ${a.class}" onclick="modalActions[${i}]()">${a.text}</button>`
+      ).join('');
+      window.modalActions = actions.map(a => a.action);
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+
+    function hideModal() {
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+
+    // Close modal on overlay click
+    document.getElementById('modal-overlay').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-overlay') hideModal();
+    });
+
+    // ===========================
+    // TOAST
+    // ===========================
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // ===========================
+    // PARTICLES
+    // ===========================
+    function createParticle() {
+      const container = document.getElementById('particles');
+      if (container.children.length > 15) return; // limit particles
+
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      const colors = ['#4CAF50', '#8BC34A', '#CDDC39', '#FFD700', '#A0693A', '#6b4226'];
+      particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.left = (Math.random() * 100) + '%';
+      particle.style.animationDuration = (5 + Math.random() * 7) + 's';
+      const size = 3 + Math.random() * 6;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+      container.appendChild(particle);
+      particle.addEventListener('animationend', () => particle.remove());
+    }
+    setInterval(createParticle, 1200);
+
+    // ===========================
+    // MINE ANIMATION
+    // ===========================
+    function playMineAnimation() {
+      const btn = document.getElementById('btn-save');
+      const rect = btn.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      // Create crack
+      const crack = document.createElement('div');
+      crack.className = 'mine-anim';
+      crack.style.left = (cx - 20) + 'px';
+      crack.style.top = (cy - 20) + 'px';
+      crack.innerHTML = '<div class="mine-crack"></div>';
+      document.body.appendChild(crack);
+
+      // Create pieces
+      for (let i = 0; i < 8; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'mine-piece';
+        piece.style.setProperty('--tx', (Math.random() * 80 - 40) + 'px');
+        piece.style.setProperty('--ty', (Math.random() * 80 - 40) + 'px');
+        piece.style.left = '17px';
+        piece.style.top = '17px';
+        const pColors = ['#FFD700', '#4CAF50', '#a0693a', '#fff'];
+        piece.style.backgroundColor = pColors[Math.floor(Math.random() * pColors.length)];
+        crack.appendChild(piece);
+      }
+
+      setTimeout(() => crack.remove(), 600);
+    }
+
+    // ===========================
+    // INIT
+    // ===========================
+    function init() {
+      initCategoryGrid();
+      setType('income');
+      document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+      renderDashboard();
+    }
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => { });
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
