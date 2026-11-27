@@ -1699,12 +1699,13 @@
       const cat = currentType === 'expense' ? getCategoryById(selectedCategory) : null;
       showToast(`${currentType === 'income' ? 'Pemasukan' : cat.name} +${formatRupiah(amount)}`);
 
-      // Reset form
+      // Reset form for next entry
       amountInput.value = '';
       noteInput.value = '';
 
-      // Switch to dashboard
-      setTimeout(() => switchView('dashboard'), 600);
+      // Update data in background
+      renderDashboard();
+      renderHistory();
     }
 
     // ===========================
