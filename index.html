@@ -1431,7 +1431,8 @@
       book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5ZM6 6h10M6 10h10"/>',
       clothes: '<path d="M20 4 16 2a4 4 0 0 1-8 0L4 4a2 2 0 0 0-1.3 2.2l.6 3.5a2 2 0 0 0 2 1.7H6v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-9h.7a2 2 0 0 0 2-1.7l.6-3.5A2 2 0 0 0 20 4z"/>',
       plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-      income: '<circle cx="12" cy="12" r="9"/><path d="M12 6v12M15 9.5a2.5 2.5 0 0 0-5 0c0 3 5 2 5 5a2.5 2.5 0 0 1-5 0"/>'
+      income: '<rect x="3" y="4" width="4" height="13" rx="1"/><rect x="10" y="8" width="4" height="9" rx="1"/><rect x="17" y="12" width="4" height="5" rx="1"/><polyline points="3 5 11 9 18 13"/><polyline points="16 17 20 17 20 13"/>',
+      work: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><circle cx="12" cy="14" r="2"/>'
     };
 
     function getIconSvg(iconKey, size, color) {
@@ -1448,11 +1449,8 @@
       { key: 'cart', label: 'Belanja', color: '#e74c3c' },
       { key: 'game', label: 'Game', color: '#9b59b6' },
       { key: 'bill', label: 'Tagihan', color: '#f39c12' },
-      { key: 'home', label: 'Kos', color: '#16a085' },
       { key: 'gem', label: 'Tabung', color: '#2980b9' },
-      { key: 'health', label: 'Sehat', color: '#27ae60' },
-      { key: 'book', label: 'Buku', color: '#1abc9c' },
-      { key: 'clothes', label: 'Baju', color: '#e84393' },
+      { key: 'work', label: 'Kerja', color: '#16a085' },
       { key: 'other', label: 'Lainnya', color: '#95a5a6' }
     ];
 
@@ -1473,6 +1471,7 @@
         income: [],
         expenses: [],
         customCategories: [],
+        deletedDefaults: [],
         lastMonth: null
       };
     }
@@ -1494,6 +1493,7 @@
         if (!raw) return getDefaultData();
         const parsed = JSON.parse(raw);
         if (!parsed.customCategories) parsed.customCategories = [];
+        if (!parsed.deletedDefaults) parsed.deletedDefaults = [];
         return parsed;
       } catch (e) {
         return getDefaultData();
@@ -1539,11 +1539,13 @@
     }
 
     function getAllCategories() {
+      const deleted = data.deletedDefaults || [];
+      const defaults = DEFAULT_CATEGORIES.filter(c => !deleted.includes(c.id));
       const custom = (data.customCategories || []).map(c => ({
         ...c,
         isCustom: true
       }));
-      return [...DEFAULT_CATEGORIES, ...custom];
+      return [...defaults, ...custom];
     }
 
     function getCategoryById(id) {
@@ -1789,7 +1791,7 @@
         <div class="cat-option ${cat.id === selectedCategory ? 'selected' : ''}" data-cat="${cat.id}" onclick="selectCategory('${cat.id}')">
           <span class="cat-opt-emoji" style="color: ${cat.color}">${getIconSvg(cat.iconKey, 20, cat.color)}</span>
           <span>${cat.name}</span>
-          ${cat.isCustom ? `<button type="button" class="cat-del-btn" onclick="deleteCustomCategory(event, '${cat.id}')" title="Hapus">✕</button>` : ''}
+          ${`<button type="button" class="cat-del-btn" onclick="deleteCategory(event, '${cat.id}')" title="Hapus">✕</button>`}
         </div>
       `).join('');
 
@@ -1860,7 +1862,7 @@
       showToast('Kategori ' + name + ' dibuat!');
     }
 
-    function deleteCustomCategory(e, id) {
+    function deleteCategory(e, id) {
       e.stopPropagation();
       const all = getAllCategories();
       const cat = all.find(c => c.id === id);
@@ -1873,9 +1875,15 @@
           { text: 'BATAL', class: '', action: hideModal },
           {
             text: 'HAPUS', class: 'red', action: () => {
-              data.customCategories = (data.customCategories || []).filter(c => c.id !== id);
+              if (cat.isCustom) {
+                data.customCategories = (data.customCategories || []).filter(c => c.id !== id);
+              } else {
+                if (!data.deletedDefaults) data.deletedDefaults = [];
+                data.deletedDefaults.push(id);
+              }
+              const remaining = getAllCategories();
               if (selectedCategory === id) {
-                selectedCategory = 'makanan';
+                selectedCategory = remaining.length > 0 ? remaining[0].id : 'lainnya';
               }
               saveData();
               hideModal();

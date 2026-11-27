@@ -1,4 +1,4 @@
-const CACHE_NAME = 'craftwallet-v4';
+const CACHE_NAME = 'craftwallet-v5';
 const ASSETS = [
   './',
   './index.html',
