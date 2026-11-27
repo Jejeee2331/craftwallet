@@ -610,6 +610,7 @@
       box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
       transition: background 0.15s, transform 0.1s;
     }
+
     input[type="date"].mc-input::-webkit-calendar-picker-indicator:hover {
       background: #ffe44d;
       transform: scale(1.05);
@@ -688,9 +689,9 @@
       justify-content: center;
       font-family: 'Press Start 2P', monospace;
       font-weight: bold;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255, 255, 255, 0.06);
       border-radius: 4px;
-      border: 2px solid rgba(255,255,255,0.08);
+      border: 2px solid rgba(255, 255, 255, 0.08);
     }
 
     .cat-option.selected {
@@ -1188,7 +1189,8 @@
           <button class="mc-btn green mt-8" id="btn-save" onclick="saveTransaction()">
             SIMPAN TRANSAKSI
           </button>
-          <button class="mc-btn mt-8" id="btn-cancel-edit" style="display:none; border-color: #666 #333 #333 #666;" onclick="cancelEdit()">
+          <button class="mc-btn mt-8" id="btn-cancel-edit" style="display:none; border-color: #666 #333 #333 #666;"
+            onclick="cancelEdit()">
             BATAL EDIT
           </button>
         </div>
@@ -1270,16 +1272,28 @@
     <!-- Bottom Navigation -->
     <nav id="bottom-nav">
       <button class="nav-btn active" data-view="dashboard" onclick="switchView('dashboard')">
-        <i class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9v9H14v-6h-4v6H4v-9z"/></svg></i><span>Beranda</span>
+        <i class="nav-icon"><svg viewBox="0 0 24 24">
+            <path d="M3 12L12 3l9 9v9H14v-6h-4v6H4v-9z" />
+          </svg></i><span>Beranda</span>
       </button>
       <button class="nav-btn" data-view="add" onclick="if(editingTransaction) resetAddForm(); switchView('add')">
-        <i class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></svg></i><span>Tambah</span>
+        <i class="nav-icon"><svg viewBox="0 0 24 24">
+            <path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none" />
+          </svg></i><span>Tambah</span>
       </button>
       <button class="nav-btn" data-view="history" onclick="switchView('history')">
-        <i class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h10M4 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></i><span>Riwayat</span>
+        <i class="nav-icon"><svg viewBox="0 0 24 24">
+            <path d="M4 6h16M4 10h16M4 14h10M4 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              fill="none" />
+          </svg></i><span>Riwayat</span>
       </button>
       <button class="nav-btn" data-view="settings" onclick="switchView('settings')">
-        <i class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v4m0 12v4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83M2 12h4m12 0h4M4.22 19.78l2.83-2.83m9.9-9.9l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></i><span>Lainnya</span>
+        <i class="nav-icon"><svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3" fill="currentColor" />
+            <path
+              d="M12 2v4m0 12v4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83M2 12h4m12 0h4M4.22 19.78l2.83-2.83m9.9-9.9l2.83-2.83"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+          </svg></i><span>Lainnya</span>
       </button>
     </nav>
   </div>
