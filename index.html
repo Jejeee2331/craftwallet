@@ -1438,6 +1438,9 @@
     function getIconSvg(iconKey, size, color) {
       size = size || 18;
       color = color || 'currentColor';
+      if (iconKey === 'work') {
+        return '<img src="assets/icon-work.png" width="' + size + '" height="' + size + '" style="object-fit:contain;filter:brightness(0) invert(1);opacity:0.85;">';
+      }
       const path = ICONS[iconKey] || ICONS.other;
       return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '<' + '/svg>';
     }
