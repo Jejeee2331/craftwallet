@@ -292,6 +292,17 @@
     .balance-card {
       background: linear-gradient(135deg, rgba(45, 27, 10, 0.95), rgba(30, 18, 8, 0.95));
       border-color: var(--gold-dark) rgba(60, 35, 12, 0.8) rgba(60, 35, 12, 0.8) var(--gold-dark);
+      transition: border-color 0.25s ease, background 0.25s ease;
+    }
+
+    .balance-card.wallet-cash {
+      background: linear-gradient(135deg, rgba(22, 42, 24, 0.95), rgba(24, 20, 10, 0.95));
+      border-color: rgba(46, 204, 113, 0.65) rgba(30, 60, 35, 0.85) rgba(30, 60, 35, 0.85) rgba(46, 204, 113, 0.65);
+    }
+
+    .balance-card.wallet-ewallet {
+      background: linear-gradient(135deg, rgba(16, 36, 54, 0.95), rgba(20, 18, 28, 0.95));
+      border-color: rgba(93, 173, 226, 0.65) rgba(25, 45, 70, 0.85) rgba(25, 45, 70, 0.85) rgba(93, 173, 226, 0.65);
     }
 
     .balance-row {
@@ -658,6 +669,18 @@
       box-shadow: inset 0 0 15px rgba(231, 76, 60, 0.1);
     }
 
+    .type-btn.active-cash {
+      background: rgba(46, 204, 113, 0.25);
+      color: var(--emerald);
+      box-shadow: inset 0 0 15px rgba(46, 204, 113, 0.12);
+    }
+
+    .type-btn.active-ewallet {
+      background: rgba(52, 152, 219, 0.25);
+      color: #5dade2;
+      box-shadow: inset 0 0 15px rgba(52, 152, 219, 0.12);
+    }
+
     /* Category Grid */
     .cat-grid {
       display: grid;
@@ -808,6 +831,18 @@
     .history-tab.active {
       background: rgba(255, 215, 0, 0.15);
       color: var(--gold);
+    }
+
+    .history-tab.active-cash {
+      background: rgba(46, 204, 113, 0.22);
+      color: var(--emerald);
+      box-shadow: inset 0 0 12px rgba(46, 204, 113, 0.15);
+    }
+
+    .history-tab.active-ewallet {
+      background: rgba(52, 152, 219, 0.24);
+      color: #5dade2;
+      box-shadow: inset 0 0 12px rgba(52, 152, 219, 0.18);
     }
 
     /* Date group header */
@@ -1180,8 +1215,14 @@
 
       <!-- ===== DASHBOARD ===== -->
       <section id="view-dashboard" class="view active">
+        <!-- Wallet Tabs -->
+        <div class="history-tabs" id="dash-wallet-tabs">
+          <button class="history-tab active-cash" id="dash-tab-cash" onclick="switchWalletTab('cash')">💵 CASH</button>
+          <button class="history-tab" id="dash-tab-ewallet" onclick="switchWalletTab('ewallet')">📱 E-WALLET</button>
+        </div>
+
         <!-- Balance Card -->
-        <div class="balance-card mc-panel">
+        <div class="balance-card mc-panel wallet-cash" id="dash-balance-card">
           <div class="balance-row income">
             <span class="label">Pemasukan</span>
             <span class="value" id="dash-income">Rp 0</span>
@@ -1191,7 +1232,7 @@
             <span class="value" id="dash-expense">Rp 0</span>
           </div>
           <div class="balance-row balance">
-            <span class="label">SALDO</span>
+            <span class="label" id="dash-balance-label">SALDO CASH</span>
             <span class="value" id="dash-balance">Rp 0</span>
           </div>
         </div>
@@ -1240,6 +1281,15 @@
             </div>
           </div>
 
+          <!-- Source / Wallet (both income and expense) -->
+          <div class="form-section" id="source-section">
+            <label class="form-label" id="source-label">MASUK KE DOMPET</label>
+            <div class="type-toggle">
+              <button class="type-btn active-cash" id="source-cash" onclick="setSource('cash')">💵 Cash</button>
+              <button class="type-btn" id="source-ewallet" onclick="setSource('ewallet')">📱 E-Wallet</button>
+            </div>
+          </div>
+
           <!-- Amount -->
           <div class="form-section">
             <label class="form-label">JUMLAH</label>
@@ -1280,6 +1330,11 @@
 
       <!-- ===== HISTORY ===== -->
       <section id="view-history" class="view">
+        <div class="history-tabs" id="history-wallet-tabs">
+          <button class="history-tab active-cash" id="hist-tab-cash" onclick="switchWalletTab('cash')">💵 CASH</button>
+          <button class="history-tab" id="hist-tab-ewallet" onclick="switchWalletTab('ewallet')">📱 E-WALLET</button>
+        </div>
+
         <div class="history-tabs">
           <button class="history-tab active" id="tab-current" onclick="switchHistoryTab('current')">BULAN INI</button>
           <button class="history-tab" id="tab-last" onclick="switchHistoryTab('last')">BULAN LALU</button>
@@ -1289,7 +1344,7 @@
         <div id="history-current">
           <div class="mc-panel" id="history-current-summary"></div>
           <div class="mc-panel">
-            <h3>// Semua Transaksi</h3>
+            <h3 id="history-list-title">// Transaksi Cash</h3>
             <div id="history-current-list">
               <div class="empty-state">
                 <div class="emoji">. . .</div>
@@ -1441,6 +1496,9 @@
       if (iconKey === 'work') {
         return '<img src="assets/icon-work.png" width="' + size + '" height="' + size + '" style="object-fit:contain;filter:brightness(0) invert(1);opacity:0.85;">';
       }
+      if (iconKey === 'expense_display') {
+        return '<img src="assets/icon-expense.png" width="' + size + '" height="' + size + '" style="object-fit:contain;filter:brightness(0) invert(1);opacity:0.85;">';
+      }
       const path = ICONS[iconKey] || ICONS.other;
       return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '<' + '/svg>';
     }
@@ -1451,8 +1509,6 @@
       { key: 'transport', label: 'Trans', color: '#3498db' },
       { key: 'cart', label: 'Belanja', color: '#e74c3c' },
       { key: 'game', label: 'Game', color: '#9b59b6' },
-      { key: 'bill', label: 'Tagihan', color: '#f39c12' },
-      { key: 'gem', label: 'Tabung', color: '#2980b9' },
       { key: 'work', label: 'Kerja', color: '#16a085' },
       { key: 'other', label: 'Lainnya', color: '#95a5a6' }
     ];
@@ -1466,6 +1522,8 @@
     let data = loadData();
     let currentType = 'income';
     let selectedCategory = 'makanan';
+    let selectedSource = 'cash';
+    let activeWallet = 'cash';
     let currentHistoryTab = 'current';
 
     function getDefaultData() {
@@ -1514,16 +1572,38 @@
     // ===========================
     // CALCULATIONS
     // ===========================
-    function getTotalIncome() {
-      return data.income.reduce((s, i) => s + i.amount, 0);
+    function getTxSource(tx) {
+      return tx && tx.source === 'ewallet' ? 'ewallet' : 'cash';
     }
 
-    function getTotalExpenses() {
-      return data.expenses.reduce((s, i) => s + i.amount, 0);
+    function getWalletLabel(wallet) {
+      return wallet === 'ewallet' ? '📱 E-Wallet' : '💵 Cash';
     }
 
-    function getBalance() {
-      return getTotalIncome() - getTotalExpenses();
+    function getWalletStats(wallet, sourceData = data) {
+      const w = wallet === 'ewallet' ? 'ewallet' : 'cash';
+      const incomeList = (sourceData.income || []).filter(i => getTxSource(i) === w);
+      const expenseList = (sourceData.expenses || []).filter(e => getTxSource(e) === w);
+      const totalIncome = incomeList.reduce((s, i) => s + i.amount, 0);
+      const totalExpense = expenseList.reduce((s, e) => s + e.amount, 0);
+      return {
+        wallet: w,
+        incomeList,
+        expenseList,
+        totalIncome,
+        totalExpense,
+        balance: totalIncome - totalExpense
+      };
+    }
+
+    function getSortedTransactions(incomeList, expenseList) {
+      const inc = incomeList.map(i => ({ ...i, type: 'income' }));
+      const exp = expenseList.map(e => ({ ...e, type: 'expense' }));
+      return [...inc, ...exp].sort((a, b) => {
+        const dateComp = b.date.localeCompare(a.date);
+        if (dateComp !== 0) return dateComp;
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      });
     }
 
     function formatRupiah(amount) {
@@ -1553,16 +1633,17 @@
 
     function getCategoryById(id) {
       const all = getAllCategories();
-      const cat = all.find(c => c.id === id) || all.find(c => c.id === 'lainnya') || all[0];
+      const cat = all.find(c => c.id === id) || all.find(c => c.id === 'lainnya') || all[0] || {
+        id: 'lainnya', name: 'Lainnya', iconKey: 'other', color: '#95a5a6'
+      };
       return {
         ...cat,
         emoji: getIconSvg(cat.iconKey, 18, cat.color)
       };
     }
 
-    // Level system: 1 level per every Rp 500,000 saved
-    function getLevel() {
-      const balance = getBalance();
+    // Level system: 1 level per every Rp 500,000 saved (per wallet)
+    function getLevel(balance) {
       if (balance <= 0) return 0;
       return Math.floor(balance / 500000);
     }
@@ -1576,8 +1657,7 @@
       return 'Netherite Pro';
     }
 
-    function getXpProgress() {
-      const balance = getBalance();
+    function getXpProgress(balance) {
       if (balance <= 0) return 0;
       return ((balance % 500000) / 500000) * 100;
     }
@@ -1585,6 +1665,30 @@
     // ===========================
     // VIEW SWITCHING
     // ===========================
+    function updateWalletTabButtons() {
+      const isCash = activeWallet === 'cash';
+      const dashCash = document.getElementById('dash-tab-cash');
+      const dashEw = document.getElementById('dash-tab-ewallet');
+      const histCash = document.getElementById('hist-tab-cash');
+      const histEw = document.getElementById('hist-tab-ewallet');
+
+      if (dashCash && dashEw) {
+        dashCash.className = 'history-tab' + (isCash ? ' active-cash' : '');
+        dashEw.className = 'history-tab' + (!isCash ? ' active-ewallet' : '');
+      }
+      if (histCash && histEw) {
+        histCash.className = 'history-tab' + (isCash ? ' active-cash' : '');
+        histEw.className = 'history-tab' + (!isCash ? ' active-ewallet' : '');
+      }
+    }
+
+    function switchWalletTab(wallet) {
+      activeWallet = wallet === 'ewallet' ? 'ewallet' : 'cash';
+      updateWalletTabButtons();
+      renderDashboard();
+      renderHistory();
+    }
+
     function switchView(viewName) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -1595,6 +1699,7 @@
       if (viewName === 'add') {
         if (!editingTransaction) {
           document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+          setSource(activeWallet);
         }
       }
       if (viewName === 'history') renderHistory();
@@ -1605,42 +1710,41 @@
     // RENDER DASHBOARD
     // ===========================
     function renderDashboard() {
-      const totalIncome = getTotalIncome();
-      const totalExpense = getTotalExpenses();
-      const balance = getBalance();
-      const level = getLevel();
+      updateWalletTabButtons();
+      const stats = getWalletStats(activeWallet);
+      const isCash = stats.wallet === 'cash';
+      const level = getLevel(stats.balance);
 
-      document.getElementById('dash-income').textContent = formatRupiah(totalIncome);
-      document.getElementById('dash-expense').textContent = formatRupiah(totalExpense);
+      const cardEl = document.getElementById('dash-balance-card');
+      if (cardEl) {
+        cardEl.className = 'balance-card mc-panel ' + (isCash ? 'wallet-cash' : 'wallet-ewallet');
+      }
+
+      document.getElementById('dash-income').textContent = formatRupiah(stats.totalIncome);
+      document.getElementById('dash-expense').textContent = formatRupiah(stats.totalExpense);
+      document.getElementById('dash-balance-label').textContent = isCash ? 'SALDO CASH' : 'SALDO E-WALLET';
 
       const balEl = document.getElementById('dash-balance');
-      balEl.textContent = (balance < 0 ? '-' : '') + formatRupiah(balance);
-      balEl.className = 'value' + (balance < 0 ? ' negative' : '');
+      balEl.textContent = (stats.balance < 0 ? '-' : '') + formatRupiah(stats.balance);
+      balEl.className = 'value' + (stats.balance < 0 ? ' negative' : '');
 
-      // XP Bar
-      const xpProgress = getXpProgress();
+      const xpProgress = getXpProgress(stats.balance);
       document.getElementById('xp-fill').style.width = xpProgress + '%';
       document.getElementById('xp-text').textContent = `Lv.${level} — ${getLevelTitle(level)}`;
 
       // Month indicator
       document.getElementById('month-indicator').textContent = getMonthName(data.currentMonth);
 
-      // Category breakdown
-      renderCategoryBreakdown();
+      // Category breakdown (per active wallet)
+      renderCategoryBreakdown(stats);
 
-      // Recent transactions
-      renderRecentTransactions();
+      // Recent transactions (per active wallet)
+      renderRecentTransactions(stats);
     }
 
-    function renderCategoryBreakdown() {
-      const container = document.getElementById('category-breakdown');
-      if (data.expenses.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="emoji">~ ~</div>Belum ada pengeluaran bulan ini</div>';
-        return;
-      }
-
+    function buildCategoryBreakdownHtml(expenses) {
       const catTotals = {};
-      data.expenses.forEach(e => {
+      expenses.forEach(e => {
         catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
       });
 
@@ -1666,15 +1770,27 @@
           `;
         });
 
-      container.innerHTML = html;
+      return html;
     }
 
-    function renderRecentTransactions() {
+    function renderCategoryBreakdown(stats) {
+      const container = document.getElementById('category-breakdown');
+      const walletName = stats.wallet === 'ewallet' ? 'E-Wallet' : 'Cash';
+      if (stats.expenseList.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="emoji">~ ~</div>Belum ada pengeluaran ${walletName} bulan ini</div>`;
+        return;
+      }
+
+      container.innerHTML = buildCategoryBreakdownHtml(stats.expenseList);
+    }
+
+    function renderRecentTransactions(stats) {
       const container = document.getElementById('recent-list');
-      const all = getAllTransactions();
+      const all = getSortedTransactions(stats.incomeList, stats.expenseList);
+      const walletName = stats.wallet === 'ewallet' ? 'E-Wallet' : 'Cash';
 
       if (all.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="emoji">. . .</div>Belum ada transaksi</div>';
+        container.innerHTML = `<div class="empty-state"><div class="emoji">. . .</div>Belum ada transaksi ${walletName}</div>`;
         return;
       }
 
@@ -1682,25 +1798,20 @@
       container.innerHTML = recent.map(tx => renderTxItem(tx, false)).join('');
     }
 
-    function getAllTransactions() {
-      const inc = data.income.map(i => ({ ...i, type: 'income' }));
-      const exp = data.expenses.map(e => ({ ...e, type: 'expense' }));
-      return [...inc, ...exp].sort((a, b) => {
-        const dateComp = b.date.localeCompare(a.date);
-        if (dateComp !== 0) return dateComp;
-        return b.timestamp - a.timestamp;
-      });
-    }
-
     function renderTxItem(tx, showDelete = true) {
       const isIncome = tx.type === 'income';
-      const cat = isIncome ? { emoji: getIconSvg('income', 18, 'var(--emerald)'), name: 'Pemasukan' } : getCategoryById(tx.category);
+      const txIconHtml = isIncome
+        ? getIconSvg('income', 18, 'var(--emerald)')
+        : getIconSvg('expense_display', 18, 'var(--red)');
+      const catName = isIncome ? 'Pemasukan' : getCategoryById(tx.category).name;
+      const sourceLabel = getTxSource(tx) === 'ewallet' ? '📱 E-Wallet' : '💵 Cash';
+      const metaText = `${formatDateShort(tx.date)} · ${catName} · ${sourceLabel}`;
       return `
         <div class="tx-item">
-          <div class="tx-icon">${cat.emoji}</div>
+          <div class="tx-icon">${txIconHtml}</div>
           <div class="tx-details">
-            <div class="tx-note">${tx.note || cat.name}</div>
-            <div class="tx-meta">${formatDateShort(tx.date)} · ${cat.name}</div>
+            <div class="tx-note">${tx.note || catName}</div>
+            <div class="tx-meta">${metaText}</div>
           </div>
           <span class="tx-amount ${tx.type}">${isIncome ? '+' : '-'}${formatRupiah(tx.amount)}</span>
           ${showDelete ? `
@@ -1738,8 +1849,10 @@
       if (type === 'expense') {
         selectCategory(tx.category || 'makanan');
         document.getElementById('input-note').value = tx.note || '';
+        setSource(tx.source || 'cash');
       } else {
         document.getElementById('input-note').value = '';
+        setSource(tx.source || 'cash');
       }
 
       switchView('add');
@@ -1761,6 +1874,7 @@
       document.getElementById('input-amount').value = '';
       document.getElementById('input-note').value = '';
       document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+      setSource(activeWallet);
       setType('income');
     }
 
@@ -1770,6 +1884,8 @@
       const expBtn = document.getElementById('type-expense');
       const catSection = document.getElementById('category-section');
       const noteSection = document.getElementById('note-section');
+      const sourceSection = document.getElementById('source-section');
+      const sourceLabel = document.getElementById('source-label');
 
       incBtn.className = 'type-btn' + (type === 'income' ? ' active-income' : '');
       expBtn.className = 'type-btn' + (type === 'expense' ? ' active-expense' : '');
@@ -1777,6 +1893,18 @@
       if (noteSection) {
         noteSection.style.display = type === 'expense' ? 'block' : 'none';
       }
+      if (sourceSection) {
+        sourceSection.style.display = 'block';
+      }
+      if (sourceLabel) {
+        sourceLabel.textContent = type === 'income' ? 'MASUK KE DOMPET' : 'SUMBER PENGELUARAN';
+      }
+    }
+
+    function setSource(src) {
+      selectedSource = src === 'ewallet' ? 'ewallet' : 'cash';
+      document.getElementById('source-cash').className = 'type-btn' + (selectedSource === 'cash' ? ' active-cash' : '');
+      document.getElementById('source-ewallet').className = 'type-btn' + (selectedSource === 'ewallet' ? ' active-ewallet' : '');
     }
 
     function selectCategory(catId) {
@@ -1825,9 +1953,8 @@
     function renderIconPicker() {
       const container = document.getElementById('cat-icon-picker');
       container.innerHTML = AVAILABLE_ICONS.map(item => `
-        <div class="cat-icon-choice ${item.key === selectedNewCatIcon ? 'selected' : ''}" onclick="selectNewCatIcon('${item.key}')">
-          <span style="color:${item.color}">${getIconSvg(item.key, 20, item.color)}</span>
-          <span>${item.label}</span>
+        <div class="cat-icon-choice ${item.key === selectedNewCatIcon ? 'selected' : ''}" onclick="selectNewCatIcon('${item.key}')" title="${item.label}">
+          <span style="color:${item.color}">${getIconSvg(item.key, 24, item.color)}</span>
         </div>
       `).join('');
     }
@@ -1928,13 +2055,16 @@
         };
 
         if (currentType === 'income') {
+          updatedTx.source = selectedSource;
           data.income.push(updatedTx);
         } else {
           updatedTx.category = selectedCategory;
+          updatedTx.source = selectedSource;
           data.expenses.push(updatedTx);
         }
 
         saveData();
+        activeWallet = selectedSource;
         playMineAnimation();
         showToast('Transaksi diperbarui!');
         resetAddForm();
@@ -1953,20 +2083,25 @@
       };
 
       if (currentType === 'income') {
+        tx.source = selectedSource;
         data.income.push(tx);
       } else {
         tx.category = selectedCategory;
+        tx.source = selectedSource;
         data.expenses.push(tx);
       }
 
       saveData();
+      activeWallet = selectedSource;
 
       // Mine animation
       playMineAnimation();
 
       // Show toast
       const cat = currentType === 'expense' ? getCategoryById(selectedCategory) : null;
-      showToast(`${currentType === 'income' ? 'Pemasukan' : cat.name} +${formatRupiah(amount)}`);
+      const walletShort = selectedSource === 'ewallet' ? 'E-Wallet' : 'Cash';
+      const sign = currentType === 'income' ? '+' : '-';
+      showToast(`${currentType === 'income' ? 'Pemasukan' : cat.name} (${walletShort}) ${sign}${formatRupiah(amount)}`);
 
       // Reset form for next entry
       amountInput.value = '';
@@ -2027,32 +2162,44 @@
     }
 
     function renderHistoryCurrent() {
-      const totalIncome = getTotalIncome();
-      const totalExpense = getTotalExpenses();
+      updateWalletTabButtons();
+      const stats = getWalletStats(activeWallet);
+      const isCash = stats.wallet === 'cash';
+      const walletName = isCash ? 'Cash' : 'E-Wallet';
+      const walletBadge = getWalletLabel(stats.wallet);
 
-      // Summary
+      // Summary (strictly per active wallet)
       document.getElementById('history-current-summary').innerHTML = `
-        <h3>// Ringkasan ${getMonthName(data.currentMonth)}</h3>
+        <h3>// Ringkasan ${getMonthName(data.currentMonth)} · ${walletBadge}</h3>
         <div class="balance-row income">
           <span class="label">Pemasukan</span>
-          <span class="value" style="color:var(--emerald);font-family:'Press Start 2P',monospace;font-size:10px">${formatRupiah(totalIncome)}</span>
+          <span class="value">${formatRupiah(stats.totalIncome)}</span>
         </div>
         <div class="balance-row expense">
           <span class="label">Pengeluaran</span>
-          <span class="value" style="color:var(--red);font-family:'Press Start 2P',monospace;font-size:10px">${formatRupiah(totalExpense)}</span>
+          <span class="value">${formatRupiah(stats.totalExpense)}</span>
         </div>
         <div class="balance-row" style="border-top:2px solid var(--panel-border);margin-top:4px;padding-top:8px">
-          <span class="label" style="font-weight:bold">Total Transaksi</span>
-          <span style="font-family:'Press Start 2P',monospace;font-size:10px;color:var(--gold)">${data.income.length + data.expenses.length}</span>
+          <span class="label" style="font-weight:bold;color:var(--gold)">Saldo ${walletName}</span>
+          <span style="font-family:'Press Start 2P',monospace;font-size:10px;color:${stats.balance < 0 ? 'var(--red)' : 'var(--gold)'}">${(stats.balance < 0 ? '-' : '') + formatRupiah(stats.balance)}</span>
+        </div>
+        <div class="balance-row" style="padding-top:4px">
+          <span class="label">Total Transaksi</span>
+          <span style="font-family:'Press Start 2P',monospace;font-size:10px;color:var(--text-primary)">${stats.expenseList.length}</span>
         </div>
       `;
 
-      // List
+      const listTitle = document.getElementById('history-list-title');
+      if (listTitle) {
+        listTitle.textContent = `// Transaksi ${walletBadge}`;
+      }
+
+      // List (strictly per active wallet)
       const listEl = document.getElementById('history-current-list');
-      const all = getAllTransactions();
+      const all = getSortedTransactions(stats.incomeList, stats.expenseList);
 
       if (all.length === 0) {
-        listEl.innerHTML = '<div class="empty-state"><div class="emoji">. . .</div>Belum ada transaksi bulan ini</div>';
+        listEl.innerHTML = `<div class="empty-state"><div class="emoji">. . .</div>Belum ada transaksi ${walletName} bulan ini</div>`;
         return;
       }
 
@@ -2075,6 +2222,7 @@
     }
 
     function renderHistoryLast() {
+      updateWalletTabButtons();
       const container = document.getElementById('history-last-content');
 
       if (!data.lastMonth) {
@@ -2091,76 +2239,47 @@
       }
 
       const lm = data.lastMonth;
-      const lmTotalIncome = lm.income.reduce((s, i) => s + i.amount, 0);
-      const lmTotalExpense = lm.expenses.reduce((s, e) => s + e.amount, 0);
-      const lmBalance = lmTotalIncome - lmTotalExpense;
+      const stats = getWalletStats(activeWallet, lm);
+      const isCash = stats.wallet === 'cash';
+      const walletName = isCash ? 'Cash' : 'E-Wallet';
+      const walletBadge = getWalletLabel(stats.wallet);
 
       let html = `
         <div class="mc-panel">
           <div class="lm-summary">
-            <div class="lm-month">${getMonthName(lm.month)}</div>
+            <div class="lm-month">${getMonthName(lm.month)} · ${walletBadge}</div>
             <div class="lm-stats">
               <div class="lm-stat">
                 <div class="lm-stat-label">Pemasukan</div>
-                <div class="lm-stat-value" style="color:var(--emerald)">${formatRupiah(lmTotalIncome)}</div>
+                <div class="lm-stat-value" style="color:var(--emerald)">${formatRupiah(stats.totalIncome)}</div>
               </div>
               <div class="lm-stat">
                 <div class="lm-stat-label">Pengeluaran</div>
-                <div class="lm-stat-value" style="color:var(--red)">${formatRupiah(lmTotalExpense)}</div>
+                <div class="lm-stat-value" style="color:var(--red)">${formatRupiah(stats.totalExpense)}</div>
               </div>
             </div>
             <div class="lm-stat" style="padding:12px;background:rgba(0,0,0,0.3);border-radius:4px;border:2px solid #333;">
-              <div class="lm-stat-label">Saldo Akhir</div>
-              <div class="lm-stat-value" style="color:${lmBalance >= 0 ? 'var(--gold)' : 'var(--red)'}; font-size:12px;">
-                ${lmBalance < 0 ? '-' : ''}${formatRupiah(lmBalance)}
+              <div class="lm-stat-label">Saldo Akhir ${walletName}</div>
+              <div class="lm-stat-value" style="color:${stats.balance >= 0 ? 'var(--gold)' : 'var(--red)'}; font-size:12px;">
+                ${stats.balance < 0 ? '-' : ''}${formatRupiah(stats.balance)}
               </div>
             </div>
           </div>
         </div>
       `;
 
-      // Category breakdown for last month
-      const catTotals = {};
-      lm.expenses.forEach(e => {
-        catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
-      });
-
-      if (Object.keys(catTotals).length > 0) {
-        const maxCat = Math.max(...Object.values(catTotals));
-        html += '<div class="mc-panel"><h3>// Pengeluaran Per Kategori</h3>';
-        Object.entries(catTotals)
-          .sort((a, b) => b[1] - a[1])
-          .forEach(([catId, amount]) => {
-            const cat = getCategoryById(catId);
-            const pct = (amount / maxCat) * 100;
-            html += `
-              <div class="cat-row">
-                <div class="cat-info" style="min-width:80px">
-                  <span class="cat-emoji">${cat.emoji}</span>
-                  <span class="cat-name">${cat.name}</span>
-                </div>
-                <div class="cat-bar-wrap">
-                  <div class="cat-bar" style="width:${pct}%; background:${cat.color}"></div>
-                </div>
-                <span class="cat-amount">${formatRupiah(amount)}</span>
-              </div>
-            `;
-          });
+      // Category breakdown for last month (strictly per active wallet)
+      if (stats.expenseList.length > 0) {
+        html += `<div class="mc-panel"><h3>// Pengeluaran Per Kategori (${walletName})</h3>`;
+        html += buildCategoryBreakdownHtml(stats.expenseList);
         html += '</div>';
       }
 
-      // Transaction list
-      const allLm = [
-        ...lm.income.map(i => ({ ...i, type: 'income' })),
-        ...lm.expenses.map(e => ({ ...e, type: 'expense' }))
-      ].sort((a, b) => {
-        const dateComp = b.date.localeCompare(a.date);
-        if (dateComp !== 0) return dateComp;
-        return (b.timestamp || 0) - (a.timestamp || 0);
-      });
+      // Transaction list (strictly per active wallet)
+      const allLm = getSortedTransactions(stats.incomeList, stats.expenseList);
 
       if (allLm.length > 0) {
-        html += '<div class="mc-panel"><h3>// Daftar Transaksi</h3>';
+        html += `<div class="mc-panel"><h3>// Daftar Transaksi ${walletBadge}</h3>`;
         const grouped = {};
         allLm.forEach(tx => {
           if (!grouped[tx.date]) grouped[tx.date] = [];
@@ -2173,6 +2292,8 @@
             txs.forEach(tx => { html += renderTxItem(tx, false); });
           });
         html += '</div>';
+      } else {
+        html += `<div class="mc-panel"><div class="empty-state"><div class="emoji">. . .</div>Belum ada transaksi ${walletName} bulan lalu</div></div>`;
       }
 
       container.innerHTML = html;
@@ -2197,7 +2318,7 @@
               data.currentMonth = getCurrentMonth();
               data.income = [];
               data.expenses = [];
-              if (editingTransaction && editingTransaction.id === id) {
+              if (editingTransaction) {
                 resetAddForm();
               }
               saveData();
@@ -2220,7 +2341,7 @@
           {
             text: 'HAPUS', class: 'red', action: () => {
               data = getDefaultData();
-              if (editingTransaction && editingTransaction.id === id) {
+              if (editingTransaction) {
                 resetAddForm();
               }
               saveData();
@@ -2331,6 +2452,7 @@
     function init() {
       initCategoryGrid();
       setType('income');
+      setSource(activeWallet);
       document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
       renderDashboard();
 

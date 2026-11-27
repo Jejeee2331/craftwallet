@@ -1,11 +1,12 @@
-const CACHE_NAME = 'craftwallet-v6';
+const CACHE_NAME = 'craftwallet-v9';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './assets/bg.jpg',
   './assets/icon.svg',
-  './assets/icon-work.png'
+  './assets/icon-work.png',
+  './assets/icon-expense.png'
 ];
 
 // Install - cache assets
