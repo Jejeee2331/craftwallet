@@ -678,6 +678,88 @@
       transition: all 0.15s;
       font-size: 10px;
       color: var(--text-secondary);
+      position: relative;
+    }
+
+    .cat-option .cat-del-btn {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 18px;
+      height: 18px;
+      background: rgba(231, 76, 60, 0.95);
+      border: 1px solid #ff7675;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      z-index: 2;
+    }
+    .cat-option .cat-del-btn:active {
+      transform: scale(0.9);
+      background: #c0392b;
+    }
+
+    .cat-option.add-cat-tile {
+      border: 2px dashed rgba(160, 105, 58, 0.7);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .cat-option.add-cat-tile:active {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.1);
+      color: var(--gold);
+    }
+    .cat-option.add-cat-tile .cat-opt-emoji {
+      border: 2px dashed rgba(255, 215, 0, 0.4);
+      color: var(--gold);
+    }
+
+    /* Icon Picker in Modal */
+    .cat-icon-picker {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 2px solid #444;
+      border-radius: 4px;
+      scrollbar-width: thin;
+    }
+    .cat-icon-choice {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 2px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 2px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+    .cat-icon-choice:active,
+    .cat-icon-choice.selected {
+      border-color: var(--gold);
+      background: rgba(255, 215, 0, 0.18);
+      color: var(--gold);
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+    }
+    .cat-icon-choice span {
+      font-size: 7px;
+      font-family: 'Press Start 2P', monospace;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .cat-option .cat-opt-emoji {
@@ -1307,15 +1389,77 @@
     </div>
   </div>
 
+  <!-- Add Category Modal -->
+  <div id="cat-modal-overlay" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width: 340px;">
+      <div class="modal-title">+ Kategori Baru</div>
+
+      <div class="form-section">
+        <label class="form-label">NAMA KATEGORI</label>
+        <input type="text" class="mc-input" id="new-cat-name" placeholder="Misal: Kopi, Kos, Game" maxlength="15" autocomplete="off">
+      </div>
+
+      <div class="form-section">
+        <label class="form-label">PILIH IKON</label>
+        <div class="cat-icon-picker" id="cat-icon-picker"></div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 14px;">
+        <button class="mc-btn" type="button" onclick="closeAddCategoryModal()">BATAL</button>
+        <button class="mc-btn green" type="button" onclick="saveNewCategory()">SIMPAN</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ===========================
     // DATA & STATE
     // ===========================
     const APP_KEY = 'craftWallet_data';
-    const CATEGORIES = [
-      { id: 'makanan', name: 'Makanan', emoji: 'M', color: '#e67e22' },
-      { id: 'transportasi', name: 'Transport', emoji: 'T', color: '#3498db' },
-      { id: 'lainnya', name: 'Lainnya', emoji: 'Dll', color: '#95a5a6' }
+
+    const ICONS = {
+      food: '<path d="M4 11h16M5 11V7a7 7 0 0 1 14 0v4M4 15h16M7 19h10a3 3 0 0 0 3-3v-1H4v1a3 3 0 0 0 3 3z"/>',
+      transport: '<rect x="3" y="10" width="18" height="8" rx="2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 10l2-6h10l2 6"/>',
+      other: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16ZM3.3 7l8.7 5 8.7-5M12 22V12"/>',
+      coffee: '<path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 2v3M10 2v3M14 2v3"/>',
+      cart: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/>',
+      game: '<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4M15 12h.01M18 10h.01"/>',
+      bill: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+      home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10"/>',
+      gem: '<path d="M6 3h12l4 6-10 12L2 9zM2 9h20M10 3l-2 6 4 12 4-12-2-6"/>',
+      health: '<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/>',
+      book: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5ZM6 6h10M6 10h10"/>',
+      clothes: '<path d="M20 4 16 2a4 4 0 0 1-8 0L4 4a2 2 0 0 0-1.3 2.2l.6 3.5a2 2 0 0 0 2 1.7H6v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-9h.7a2 2 0 0 0 2-1.7l.6-3.5A2 2 0 0 0 20 4z"/>',
+      plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      income: '<circle cx="12" cy="12" r="9"/><path d="M12 6v12M15 9.5a2.5 2.5 0 0 0-5 0c0 3 5 2 5 5a2.5 2.5 0 0 1-5 0"/>'
+    };
+
+    function getIconSvg(iconKey, size, color) {
+      size = size || 18;
+      color = color || 'currentColor';
+      const path = ICONS[iconKey] || ICONS.other;
+      return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '<' + '/svg>';
+    }
+
+    const AVAILABLE_ICONS = [
+      { key: 'food', label: 'Makan', color: '#e67e22' },
+      { key: 'coffee', label: 'Kopi', color: '#d35400' },
+      { key: 'transport', label: 'Trans', color: '#3498db' },
+      { key: 'cart', label: 'Belanja', color: '#e74c3c' },
+      { key: 'game', label: 'Game', color: '#9b59b6' },
+      { key: 'bill', label: 'Tagihan', color: '#f39c12' },
+      { key: 'home', label: 'Kos', color: '#16a085' },
+      { key: 'gem', label: 'Tabung', color: '#2980b9' },
+      { key: 'health', label: 'Sehat', color: '#27ae60' },
+      { key: 'book', label: 'Buku', color: '#1abc9c' },
+      { key: 'clothes', label: 'Baju', color: '#e84393' },
+      { key: 'other', label: 'Lainnya', color: '#95a5a6' }
+    ];
+
+    const DEFAULT_CATEGORIES = [
+      { id: 'makanan', name: 'Makanan', iconKey: 'food', color: '#e67e22' },
+      { id: 'transportasi', name: 'Transport', iconKey: 'transport', color: '#3498db' },
+      { id: 'lainnya', name: 'Lainnya', iconKey: 'other', color: '#95a5a6' }
     ];
 
     let data = loadData();
@@ -1328,6 +1472,7 @@
         currentMonth: getCurrentMonth(),
         income: [],
         expenses: [],
+        customCategories: [],
         lastMonth: null
       };
     }
@@ -1347,7 +1492,9 @@
       try {
         const raw = localStorage.getItem(APP_KEY);
         if (!raw) return getDefaultData();
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (!parsed.customCategories) parsed.customCategories = [];
+        return parsed;
       } catch (e) {
         return getDefaultData();
       }
@@ -1391,8 +1538,21 @@
       return `${d.getDate()}/${d.getMonth() + 1}`;
     }
 
+    function getAllCategories() {
+      const custom = (data.customCategories || []).map(c => ({
+        ...c,
+        isCustom: true
+      }));
+      return [...DEFAULT_CATEGORIES, ...custom];
+    }
+
     function getCategoryById(id) {
-      return CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
+      const all = getAllCategories();
+      const cat = all.find(c => c.id === id) || all.find(c => c.id === 'lainnya') || all[0];
+      return {
+        ...cat,
+        emoji: getIconSvg(cat.iconKey, 18, cat.color)
+      };
     }
 
     // Level system: 1 level per every Rp 500,000 saved
@@ -1529,7 +1689,7 @@
 
     function renderTxItem(tx, showDelete = true) {
       const isIncome = tx.type === 'income';
-      const cat = isIncome ? { emoji: 'Rp', name: 'Pemasukan' } : getCategoryById(tx.category);
+      const cat = isIncome ? { emoji: getIconSvg('income', 18, 'var(--emerald)'), name: 'Pemasukan' } : getCategoryById(tx.category);
       return `
         <div class="tx-item">
           <div class="tx-icon">${cat.emoji}</div>
@@ -1623,12 +1783,110 @@
 
     function initCategoryGrid() {
       const grid = document.getElementById('cat-grid');
-      grid.innerHTML = CATEGORIES.map(cat => `
+      const all = getAllCategories();
+
+      let html = all.map(cat => `
         <div class="cat-option ${cat.id === selectedCategory ? 'selected' : ''}" data-cat="${cat.id}" onclick="selectCategory('${cat.id}')">
-          <span class="cat-opt-emoji">${cat.emoji}</span>
+          <span class="cat-opt-emoji" style="color: ${cat.color}">${getIconSvg(cat.iconKey, 20, cat.color)}</span>
           <span>${cat.name}</span>
+          ${cat.isCustom ? `<button type="button" class="cat-del-btn" onclick="deleteCustomCategory(event, '${cat.id}')" title="Hapus">✕</button>` : ''}
         </div>
       `).join('');
+
+      html += `
+        <div class="cat-option add-cat-tile" onclick="openAddCategoryModal()">
+          <span class="cat-opt-emoji">${getIconSvg('plus', 20, 'var(--gold)')}</span>
+          <span>+ Baru</span>
+        </div>
+      `;
+
+      grid.innerHTML = html;
+    }
+
+    let selectedNewCatIcon = 'coffee';
+
+    function openAddCategoryModal() {
+      document.getElementById('new-cat-name').value = '';
+      selectedNewCatIcon = 'coffee';
+      renderIconPicker();
+      document.getElementById('cat-modal-overlay').classList.remove('hidden');
+      setTimeout(() => document.getElementById('new-cat-name').focus(), 100);
+    }
+
+    function closeAddCategoryModal() {
+      document.getElementById('cat-modal-overlay').classList.add('hidden');
+    }
+
+    function renderIconPicker() {
+      const container = document.getElementById('cat-icon-picker');
+      container.innerHTML = AVAILABLE_ICONS.map(item => `
+        <div class="cat-icon-choice ${item.key === selectedNewCatIcon ? 'selected' : ''}" onclick="selectNewCatIcon('${item.key}')">
+          <span style="color:${item.color}">${getIconSvg(item.key, 20, item.color)}</span>
+          <span>${item.label}</span>
+        </div>
+      `).join('');
+    }
+
+    function selectNewCatIcon(key) {
+      selectedNewCatIcon = key;
+      renderIconPicker();
+    }
+
+    function saveNewCategory() {
+      const nameInput = document.getElementById('new-cat-name');
+      const name = nameInput.value.trim();
+      if (!name) {
+        showToast('Masukkan nama kategori!');
+        return;
+      }
+
+      const iconObj = AVAILABLE_ICONS.find(i => i.key === selectedNewCatIcon) || AVAILABLE_ICONS[0];
+      const newCat = {
+        id: 'cat_' + Date.now().toString(36),
+        name: name,
+        iconKey: iconObj.key,
+        color: iconObj.color
+      };
+
+      if (!data.customCategories) {
+        data.customCategories = [];
+      }
+      data.customCategories.push(newCat);
+      saveData();
+
+      closeAddCategoryModal();
+      initCategoryGrid();
+      selectCategory(newCat.id);
+      showToast('Kategori ' + name + ' dibuat!');
+    }
+
+    function deleteCustomCategory(e, id) {
+      e.stopPropagation();
+      const all = getAllCategories();
+      const cat = all.find(c => c.id === id);
+      if (!cat) return;
+
+      showModal(
+        'Hapus Kategori?',
+        'Kategori "' + cat.name + '" akan dihapus dari daftar.',
+        [
+          { text: 'BATAL', class: '', action: hideModal },
+          {
+            text: 'HAPUS', class: 'red', action: () => {
+              data.customCategories = (data.customCategories || []).filter(c => c.id !== id);
+              if (selectedCategory === id) {
+                selectedCategory = 'makanan';
+              }
+              saveData();
+              hideModal();
+              initCategoryGrid();
+              renderDashboard();
+              renderHistory();
+              showToast('Kategori dihapus');
+            }
+          }
+        ]
+      );
     }
 
     function saveTransaction() {
@@ -2064,6 +2322,13 @@
       setType('income');
       document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
       renderDashboard();
+
+      const catModal = document.getElementById('cat-modal-overlay');
+      if (catModal) {
+        catModal.addEventListener('click', (e) => {
+          if (e.target.id === 'cat-modal-overlay') closeAddCategoryModal();
+        });
+      }
     }
 
     // Register Service Worker
