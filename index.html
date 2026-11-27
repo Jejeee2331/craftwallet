@@ -3,8 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="CraftWallet">
@@ -588,6 +587,7 @@
       font-size: 16px;
       font-family: inherit;
       outline: none;
+      appearance: none;
       -webkit-appearance: none;
       color-scheme: dark;
     }
@@ -1344,7 +1344,7 @@
     }
 
     function generateId() {
-      return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     }
 
     // ===========================
@@ -1956,10 +1956,15 @@
     function showModal(title, text, actions) {
       document.getElementById('modal-title').textContent = title;
       document.getElementById('modal-text').textContent = text;
-      document.getElementById('modal-actions').innerHTML = actions.map((a, i) =>
-        `<button class="mc-btn ${a.class}" onclick="modalActions[${i}]()">${a.text}</button>`
-      ).join('');
-      window.modalActions = actions.map(a => a.action);
+      const actionsEl = document.getElementById('modal-actions');
+      actionsEl.innerHTML = '';
+      actions.forEach(a => {
+        const btn = document.createElement('button');
+        btn.className = 'mc-btn ' + (a.class || '');
+        btn.textContent = a.text;
+        btn.onclick = a.action;
+        actionsEl.appendChild(btn);
+      });
       document.getElementById('modal-overlay').classList.remove('hidden');
     }
 
